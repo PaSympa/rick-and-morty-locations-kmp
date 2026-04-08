@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListScreen
 
 /**
  * Root navigation host. Wires [AppNavigator]'s event stream to a Nav3 back stack
@@ -43,7 +44,7 @@ fun AppNavHost() {
         entryProvider = { key ->
             NavEntry(key) {
                 when (key) {
-                    is LocationListRoute -> Placeholder("LocationListScreen — coming next phase")
+                    is LocationListRoute -> LocationListScreen()
                     is LocationDetailRoute -> Placeholder("LocationDetailScreen — id=${key.locationId}")
                     else -> Placeholder("Unknown route: $key")
                 }

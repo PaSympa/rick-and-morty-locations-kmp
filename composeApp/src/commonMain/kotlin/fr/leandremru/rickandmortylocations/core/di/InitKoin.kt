@@ -14,6 +14,6 @@ fun initKoin(extraConfig: KoinAppDeclaration? = null) {
     startKoin {
         extraConfig?.invoke(this)
         modules(platformModules())
-        modules(networkModule, databaseModule, repositoryModule)
+        modules(networkModule, databaseModule, repositoryModule, viewModelModule)
     }
 }

@@ -8,6 +8,9 @@ import fr.leandremru.rickandmortylocations.data.remote.api.LocationApi
 import fr.leandremru.rickandmortylocations.data.remote.createHttpClient
 import fr.leandremru.rickandmortylocations.data.repository.LocationRepositoryImpl
 import fr.leandremru.rickandmortylocations.domain.repository.LocationRepository
+import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListStore
+import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListViewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 /** Ktor `HttpClient` and remote services. */
@@ -29,4 +32,10 @@ val databaseModule = module {
 /** Domain contracts implemented by the data layer. */
 val repositoryModule = module {
     single<LocationRepository> { LocationRepositoryImpl(get(), get()) }
+}
+
+/** Per-screen MVI stores and ViewModels. */
+val viewModelModule = module {
+    factory { LocationListStore(get()) }
+    viewModel { LocationListViewModel(get()) }
 }

@@ -34,7 +34,7 @@ abstract class Store<State>(
     val state: StateFlow<State> get() = _state
 
     /** Mutates the state immutably. Call from inside an action's `reduce()`. */
-    protected fun Store<State>.updateState(block: State.() -> State) {
+    fun Store<State>.updateState(block: State.() -> State) {
         _state.update { block(it) }
     }
 
@@ -42,7 +42,7 @@ abstract class Store<State>(
      * Launches [source] on the store scope and forwards the wrapped [Result]
      * to [onResult] on the main thread, where state mutations should happen.
      */
-    protected fun <T> Store<State>.fetchData(
+    fun <T> Store<State>.fetchData(
         source: suspend () -> T,
         onResult: Result<T>.() -> Unit,
     ) {
