@@ -1,4 +1,4 @@
-package fr.leandremru.rickandmortylocations.data.local.mapper
+package fr.leandremru.rickandmortylocations.data.local
 
 import fr.leandremru.rickandmortylocations.data.local.db.LocationEntity
 import fr.leandremru.rickandmortylocations.data.remote.dto.LocationDto
@@ -6,7 +6,7 @@ import fr.leandremru.rickandmortylocations.domain.model.Location
 
 private const val ID_SEPARATOR = ","
 
-/** Converts an [LocationEntity] read from the local DB into the domain [Location]. */
+/** Converts a [LocationEntity] read from the local DB into the domain [Location]. */
 fun LocationEntity.toDomain(): Location = Location(
     id = id,
     name = name,
@@ -18,8 +18,10 @@ fun LocationEntity.toDomain(): Location = Location(
 
 /**
  * Converts a remote [LocationDto] into a persistable [LocationEntity].
- * Resident URLs are reduced to their numeric IDs and joined as a CSV string,
- * which is enough for our use-case (no SQL queries on individual residents).
+ *
+ * Resident URLs are reduced to their numeric IDs and joined as a CSV string.
+ * That is enough for our use-case (no SQL queries on individual residents),
+ * and avoids introducing a separate `resident` table just for a list lookup.
  */
 fun LocationDto.toEntity(): LocationEntity = LocationEntity(
     id = id,

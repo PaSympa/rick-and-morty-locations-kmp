@@ -13,35 +13,28 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.leandremru.rickandmortylocations.domain.model.Location
 import fr.leandremru.rickandmortylocations.presentation.components.RnMErrorState
 import fr.leandremru.rickandmortylocations.presentation.components.RnMLocationCard
-import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.actions.LoadLocations
-import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.actions.SelectLocation
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Public entry point for the locations list screen.
- * Resolves the [LocationListViewModel] from Koin and delegates rendering to
- * the pure [LocationListContent] composable so the same content can be reused
- * in the Desktop master-detail layout.
+ * Stateless locations list screen.
+ *
+ * Pure UI: takes the immutable [state], an [onAction] dispatcher and a
+ * navigation callback for selection. Knows nothing about Koin or the
+ * ViewModel — the composition root (navigation host or Desktop screen)
+ * is in charge of resolving the [LocationListViewModel] and feeding its
+ * state into this composable.
  */
-@Composable
-fun LocationListScreen() {
-    val viewModel = koinViewModel<LocationListViewModel>()
-    val state by viewModel.state.collectAsState()
-    LocationListContent(state = state, onAction = viewModel::handleAction)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationListContent(
+fun LocationListScreen(
     state: LocationListUiState,
     onAction: (LocationListAction) -> Unit,
+    onLocationSelected: (Location) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -59,13 +52,13 @@ fun LocationListContent(
                     items(items = state.locations, key = { it.id }) { location ->
                         RnMLocationCard(
                             location = location,
-                            onClick = { onAction(SelectLocation(location)) },
+                            onClick = { onLocationSelected(location) },
                         )
                     }
                 }
                 LocationListUiState.Phase.Error -> RnMErrorState(
                     message = state.errorMessage ?: "Unknown error",
-                    onRetry = { onAction(LoadLocations) },
+                    onRetry = { onAction(LocationListAction.Retry) },
                 )
             }
         }

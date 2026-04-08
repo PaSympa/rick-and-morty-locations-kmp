@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,22 +18,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.leandremru.rickandmortylocations.domain.repository.LocationRepository
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailContent
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailStore
-import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListContent
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailAction
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailScreen
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
+import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListViewModel
-import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.actions.SelectLocation
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Desktop master-detail layout.
+ * Desktop master-detail layout — composition root for the Desktop flow.
  *
- * Reuses the pure [LocationListContent] and [LocationDetailContent] composables
- * from the mobile screens. Selection is local state instead of navigation:
- * clicking a location in the left pane updates `selectedLocationId`, which
- * the right pane reacts to by spinning up a fresh [LocationDetailStore].
+ * Reuses the stateless [LocationListScreen] and [LocationDetailScreen] composables
+ * from the mobile flow. Selection is local Compose state instead of navigation:
+ * clicking a location in the left pane updates `selectedLocationId`, which the
+ * right pane reacts to by dispatching a fresh `Load` action to the detail VM.
+ *
+ * Like the mobile [fr.leandremru.rickandmortylocations.presentation.navigation.AppNavHost],
+ * this is the only place on Desktop allowed to know about Koin — the actual
+ * screens stay pure.
  */
 @Composable
 fun LocationsDesktopScreen() {
@@ -59,17 +61,11 @@ private fun ListPane(
 ) {
     val viewModel = koinViewModel<LocationListViewModel>()
     val state by viewModel.state.collectAsState()
-    LocationListContent(
+    LocationListScreen(
         state = state,
+        onAction = viewModel::onAction,
+        onLocationSelected = { onLocationSelected(it.id) },
         modifier = modifier,
-        onAction = { action ->
-            when (action) {
-                // Intercept the selection: instead of pushing a Nav3 route,
-                // update the local Desktop state so the right pane updates.
-                is SelectLocation -> onLocationSelected(action.location.id)
-                else -> viewModel.handleAction(action)
-            }
-        },
     )
 }
 
@@ -88,21 +84,16 @@ private fun DetailPane(
         return
     }
 
-    // Bypass the Compose ViewModel layer here: we just need a Store scoped to the
-    // current selection, with its coroutine scope torn down when the selection changes.
-    val repository = koinInject<LocationRepository>()
-    val store = remember(selectedLocationId) {
-        LocationDetailStore(locationId = selectedLocationId, repository = repository)
+    val viewModel = koinViewModel<LocationDetailViewModel>()
+    LaunchedEffect(selectedLocationId) {
+        viewModel.onAction(LocationDetailAction.Load(selectedLocationId))
     }
-    DisposableEffect(store) {
-        onDispose { store.storeScope.close() }
-    }
-    val state by store.state.collectAsState()
-
-    LocationDetailContent(
+    val state by viewModel.state.collectAsState()
+    LocationDetailScreen(
         state = state,
-        onAction = { /* no nav back on Desktop master-detail */ },
+        onAction = viewModel::onAction,
         modifier = modifier,
-        showBackButton = false,
+        // No back button on Desktop: master-detail stays on a single screen.
+        onNavigateBack = null,
     )
 }

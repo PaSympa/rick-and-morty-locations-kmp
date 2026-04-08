@@ -2,6 +2,8 @@ package fr.leandremru.rickandmortylocations.core.di
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import fr.leandremru.rickandmortylocations.core.audio.AudioManager
+import fr.leandremru.rickandmortylocations.core.audio.createAudioManager
 import fr.leandremru.rickandmortylocations.data.local.db.LocationsDatabase
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -19,4 +21,9 @@ private val databaseBuilderModule: Module = module {
     }
 }
 
-actual fun platformModules(): List<Module> = listOf(databaseBuilderModule)
+/** Native [AudioManager] built from the application context via the dedicated extension. */
+private val audioModule: Module = module {
+    single<AudioManager> { androidContext().createAudioManager() }
+}
+
+actual fun platformModules(): List<Module> = listOf(databaseBuilderModule, audioModule)

@@ -16,40 +16,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.leandremru.rickandmortylocations.domain.model.Location
 import fr.leandremru.rickandmortylocations.presentation.components.RnMErrorState
 import fr.leandremru.rickandmortylocations.presentation.components.RnMLabeledRow
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.actions.LoadLocationDetail
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.actions.NavigateBack
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 /**
- * Public entry point for the location detail screen.
- * Resolves a [LocationDetailViewModel] scoped to [locationId] from Koin so each
- * navigated detail gets its own store with the right id.
+ * Stateless location detail screen.
+ *
+ * Pure UI: takes the immutable [state], an [onAction] dispatcher and an
+ * optional back callback. Knows nothing about Koin or the ViewModel — the
+ * composition root resolves the [LocationDetailViewModel] and dispatches
+ * the `Load` action whenever the requested id changes.
+ *
+ * @param onNavigateBack `null` on Desktop (master-detail stays on a single screen).
  */
-@Composable
-fun LocationDetailScreen(locationId: Int) {
-    val viewModel = koinViewModel<LocationDetailViewModel>(
-        parameters = { parametersOf(locationId) },
-    )
-    val state by viewModel.state.collectAsState()
-    LocationDetailContent(state = state, onAction = viewModel::handleAction)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationDetailContent(
+fun LocationDetailScreen(
     state: LocationDetailUiState,
     onAction: (LocationDetailAction) -> Unit,
     modifier: Modifier = Modifier,
-    showBackButton: Boolean = true,
+    onNavigateBack: (() -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -57,8 +47,8 @@ fun LocationDetailContent(
             TopAppBar(
                 title = { Text(state.location?.name ?: "Location") },
                 navigationIcon = {
-                    if (showBackButton) {
-                        TextButton(onClick = { onAction(NavigateBack) }) { Text("←") }
+                    if (onNavigateBack != null) {
+                        TextButton(onClick = onNavigateBack) { Text("←") }
                     }
                 },
             )
@@ -70,7 +60,7 @@ fun LocationDetailContent(
                 LocationDetailUiState.Phase.Loaded -> state.location?.let { LoadedDetail(it) }
                 LocationDetailUiState.Phase.Error -> RnMErrorState(
                     message = state.errorMessage ?: "Unknown error",
-                    onRetry = { onAction(LoadLocationDetail) },
+                    onRetry = { onAction(LocationDetailAction.Retry) },
                 )
             }
         }

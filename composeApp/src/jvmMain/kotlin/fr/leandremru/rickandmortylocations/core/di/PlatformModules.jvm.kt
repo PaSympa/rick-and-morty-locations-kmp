@@ -2,6 +2,7 @@ package fr.leandremru.rickandmortylocations.core.di
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import fr.leandremru.rickandmortylocations.core.audio.AudioManager
 import fr.leandremru.rickandmortylocations.data.local.db.LocationsDatabase
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -21,4 +22,9 @@ private val databaseBuilderModule: Module = module {
     }
 }
 
-actual fun platformModules(): List<Module> = listOf(databaseBuilderModule)
+/** Desktop `actual` of [AudioManager] backed by `javax.sound.sampled`. */
+private val audioModule: Module = module {
+    single { AudioManager() }
+}
+
+actual fun platformModules(): List<Module> = listOf(databaseBuilderModule, audioModule)
