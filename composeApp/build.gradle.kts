@@ -9,8 +9,10 @@ plugins {
     alias(libs.plugins.composeHotReload)
     // Generates (de)serialization code for `@Serializable` DTOs (Data layer)
     alias(libs.plugins.kotlinSerialization)
-    // Generates type-safe DAOs and Entities from `.sq` files (local source)
-    alias(libs.plugins.sqldelight)
+    // KSP processor for Room (Data layer local source)
+    alias(libs.plugins.ksp)
+    // Room KMP plugin: simplifies KSP wiring and schema generation
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -30,8 +32,6 @@ kotlin {
             implementation(libs.ktor.client.android)
             // Koin Android helpers (Application context, etc.)
             implementation(libs.koin.android)
-            // Native Android SQLite driver for SQLDelight
-            implementation(libs.sqldelight.android.driver)
         }
         commonMain.dependencies {
             // --- Compose Multiplatform (shared UI) ---
@@ -62,9 +62,9 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
 
-            // --- SQLDelight (local source: DAO/Entity pair) ---
-            implementation(libs.sqldelight.runtime)
-            implementation(libs.sqldelight.coroutines.extensions)
+            // --- Room + bundled SQLite (local source: DAO/Entity pair) ---
+            implementation(libs.room.runtime)
+            implementation(libs.sqlite.bundled)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -74,8 +74,6 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             // Java HTTP engine for Ktor on Desktop
             implementation(libs.ktor.client.java)
-            // JVM SQLite driver for SQLDelight on Desktop
-            implementation(libs.sqldelight.sqlite.driver)
         }
     }
 }
@@ -109,6 +107,15 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+
+    // Wire the Room KSP processor for every KMP target that uses Room.
+    // `kspCommonMainMetadata` is required so the @ConstructedBy `expect object`
+    // gets its `actual` generated for commonMain.
+    listOf(
+        "kspAndroid",
+        "kspJvm",
+        "kspCommonMainMetadata",
+    ).forEach { add(it, libs.room.compiler) }
 }
 
 compose.desktop {
@@ -123,12 +130,8 @@ compose.desktop {
     }
 }
 
-// SQLDelight configuration: declares the database that will be generated
-// from `.sq` files placed under `composeApp/src/commonMain/sqldelight/`
-sqldelight {
-    databases {
-        create("LocationsDatabase") {
-            packageName.set("fr.leandremru.rickandmortylocations.data.local.db")
-        }
-    }
+// Room schema export directory (required by the androidx.room Gradle plugin
+// even when @Database(exportSchema = false) is used).
+room {
+    schemaDirectory("$projectDir/schemas")
 }
