@@ -72,10 +72,25 @@ private fun DetailPane(
 ) {
     if (selectedLocationId == null) {
         Box(modifier = modifier.padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(
-                text = "Select a location to see its details",
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            androidx.compose.foundation.layout.Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "🌀",
+                    style = MaterialTheme.typography.displayLarge,
+                )
+                Text(
+                    text = "Pick a location",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = "Select a location on the left to open its portal.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                )
+            }
         }
         return
     }

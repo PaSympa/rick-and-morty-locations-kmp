@@ -8,9 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 
-/** Reusable error state with a branded retry button. */
+/** Reusable themed error state with a "reopen portal" retry button. */
 @Composable
 fun RnMErrorState(
     message: String,
@@ -22,7 +24,18 @@ fun RnMErrorState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(text = message, style = MaterialTheme.typography.bodyLarge)
-        RnMButton(text = "Retry", onClick = onRetry)
+        Text(text = "🛸", fontSize = 56.sp)
+        Text(
+            text = "Aw geez!",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+        )
+        RnMButton(text = "Reopen portal", onClick = onRetry)
     }
 }
