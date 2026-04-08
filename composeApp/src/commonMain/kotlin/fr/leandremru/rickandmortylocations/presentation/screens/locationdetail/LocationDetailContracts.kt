@@ -7,6 +7,11 @@ import fr.leandremru.rickandmortylocations.domain.model.Location
  *
  * `requestedId` is tracked here (not in the constructor) so the same VM
  * instance can serve consecutive selections on Desktop master-detail.
+ *
+ * @property phase        Current rendering phase (loading / loaded / error).
+ * @property requestedId  Id of the last location asked to load, or `null` before the first request.
+ * @property location     Loaded location, only set when [phase] is `Loaded`.
+ * @property errorMessage Last error message, only set when [phase] is `Error`.
  */
 data class LocationDetailUiState(
     val phase: Phase = Phase.Loading,

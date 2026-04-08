@@ -2,7 +2,13 @@ package fr.leandremru.rickandmortylocations.presentation.screens.locationlist
 
 import fr.leandremru.rickandmortylocations.domain.model.Location
 
-/** Immutable UI state of the locations list screen. */
+/**
+ * Immutable UI state of the locations list screen.
+ *
+ * @property phase        Current rendering phase (loading / loaded / error).
+ * @property locations    Locations to display once [phase] is `Loaded`.
+ * @property errorMessage Last error message, only set when [phase] is `Error`.
+ */
 data class LocationListUiState(
     val phase: Phase = Phase.Loading,
     val locations: List<Location> = emptyList(),
