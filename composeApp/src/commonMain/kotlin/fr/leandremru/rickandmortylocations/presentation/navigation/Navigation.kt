@@ -7,13 +7,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailAction
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListScreen
@@ -26,6 +25,40 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+/*
+ * Navigation
+ * ----------
+ * Three pieces work together:
+ *
+ *  1. [Destination] — a sealed interface whose subtypes are the typed routes.
+ *     Each subtype is @Serializable so the back stack can be written to and
+ *     restored from SavedState. Route arguments (like `locationId`) live
+ *     inside the destination itself.
+ *
+ *  2. [AppNavigator] — a single object exposing `navigate(destination)` and
+ *     `back()`. It is the only navigation surface visible to the rest of the
+ *     app: ViewModels and screens never touch the back stack. Requests are
+ *     emitted through a hot SharedFlow and consumed by [AppNavHost], the
+ *     single collector.
+ *
+ *  3. [AppNavHost] — the composition root. It owns the back stack via
+ *     [rememberNavBackStack] (saveable through [NavBackStackConfiguration],
+ *     which registers the polymorphic [Destination] subtypes against
+ *     [NavKey]), applies the [AppNavigator] events to it, and resolves each
+ *     entry's ViewModel via Koin inside the entry block.
+ *
+ * For the detail entry, the typed `key` is forwarded to
+ * `koinViewModel { parametersOf(key) }` so the ViewModel receives the
+ * [Destination.LocationDetail] in its constructor and triggers the load (and
+ * the cross-native portal sound) once in `init`. Combined with
+ * [rememberViewModelStoreNavEntryDecorator], rotation and process death
+ * restore the user on the same screen and never replay the side effects.
+ *
+ * Desktop master-detail does not use this graph: it composes the same
+ * stateless screens directly with selection held as local Compose state.
+ */
 
 /** Type-safe navigation destinations for the mobile flow. */
 sealed interface Destination : NavKey {
@@ -76,15 +109,12 @@ private val NavBackStackConfiguration = SavedStateConfiguration {
 /**
  * Mobile navigation host — composition root for the Nav3 graph.
  *
- * Owns the back stack, collects [AppNavigator] events, and resolves each
- * entry's ViewModel via Koin in the small private `*Entry` composables —
- * the screens themselves never import Koin.
+ * Owns the back stack (saveable across configuration changes and process death),
+ * collects [AppNavigator] events, and resolves each entry's ViewModel via Koin
+ * inside the entry block. Screens themselves never import Koin.
  */
 @Composable
 fun AppNavHost() {
-    // rememberNavBackStack survives configuration changes (rotation, dark mode...)
-    // and process death — the user lands back on the same screen instead of being
-    // kicked to the list.
     val backStack = rememberNavBackStack(NavBackStackConfiguration, Destination.LocationList)
 
     LaunchedEffect(Unit) {
@@ -104,40 +134,27 @@ fun AppNavHost() {
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        entryProvider = { key ->
-            NavEntry(key) {
-                when (key) {
-                    Destination.LocationList -> LocationListEntry()
-                    is Destination.LocationDetail -> LocationDetailEntry(locationId = key.locationId)
-                }
+        entryProvider = entryProvider {
+            entry<Destination.LocationList> {
+                val viewModel = koinViewModel<LocationListViewModel>()
+                val state by viewModel.state.collectAsState()
+                LocationListScreen(
+                    state = state,
+                    onAction = viewModel::onAction,
+                    onLocationSelected = { location ->
+                        AppNavigator.navigate(Destination.LocationDetail(location.id))
+                    },
+                )
+            }
+            entry<Destination.LocationDetail> { key ->
+                val viewModel = koinViewModel<LocationDetailViewModel> { parametersOf(key) }
+                val state by viewModel.state.collectAsState()
+                LocationDetailScreen(
+                    state = state,
+                    onAction = viewModel::onAction,
+                    onNavigateBack = { AppNavigator.back() },
+                )
             }
         },
-    )
-}
-
-@Composable
-private fun LocationListEntry() {
-    val viewModel = koinViewModel<LocationListViewModel>()
-    val state by viewModel.state.collectAsState()
-    LocationListScreen(
-        state = state,
-        onAction = viewModel::onAction,
-        onLocationSelected = { location ->
-            AppNavigator.navigate(Destination.LocationDetail(location.id))
-        },
-    )
-}
-
-@Composable
-private fun LocationDetailEntry(locationId: Int) {
-    val viewModel = koinViewModel<LocationDetailViewModel>()
-    LaunchedEffect(locationId) {
-        viewModel.onAction(LocationDetailAction.Load(locationId))
-    }
-    val state by viewModel.state.collectAsState()
-    LocationDetailScreen(
-        state = state,
-        onAction = viewModel::onAction,
-        onNavigateBack = { AppNavigator.back() },
     )
 }

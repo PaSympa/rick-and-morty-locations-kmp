@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.leandremru.rickandmortylocations.core.audio.AudioManager
 import fr.leandremru.rickandmortylocations.domain.repository.LocationRepository
+import fr.leandremru.rickandmortylocations.presentation.navigation.Destination
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailUiState.Phase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,11 +15,12 @@ import kotlinx.coroutines.launch
 /**
  * UDF ViewModel for the location detail screen.
  *
- * The id is dispatched as an action ([LocationDetailAction.Load]) rather than
- * passed via the constructor: this lets the same instance serve consecutive
- * selections on Desktop master-detail without being recreated.
+ * Receives the [Destination.LocationDetail] NavKey via Koin's `parametersOf`,
+ * which is the canonical Nav3 pattern: the id is part of the back stack key,
+ * survives configuration changes for free, and the load runs once in `init`.
  */
 class LocationDetailViewModel(
+    private val navKey: Destination.LocationDetail,
     private val repository: LocationRepository,
     private val audioManager: AudioManager,
 ) : ViewModel() {
@@ -26,21 +28,22 @@ class LocationDetailViewModel(
     private val _state = MutableStateFlow(LocationDetailUiState())
     val state: StateFlow<LocationDetailUiState> = _state.asStateFlow()
 
+    init {
+        load()
+    }
+
     fun onAction(action: LocationDetailAction) {
         when (action) {
-            is LocationDetailAction.Load -> if (_state.value.requestedId != action.id) load(action.id)
-            LocationDetailAction.Retry -> _state.value.requestedId?.let(::load)
+            LocationDetailAction.Retry -> load()
         }
     }
 
-    private fun load(id: Int) {
+    private fun load() {
         // Cross-native side effect: opening a location plays the portal sound.
         audioManager.playPortalClick()
-        _state.update {
-            it.copy(phase = Phase.Loading, requestedId = id, location = null, errorMessage = null)
-        }
+        _state.update { it.copy(phase = Phase.Loading, location = null, errorMessage = null) }
         viewModelScope.launch {
-            runCatching { repository.getLocationById(id) }
+            runCatching { repository.getLocationById(navKey.locationId) }
                 .onSuccess { location ->
                     _state.update { it.copy(phase = Phase.Loaded, location = location) }
                 }

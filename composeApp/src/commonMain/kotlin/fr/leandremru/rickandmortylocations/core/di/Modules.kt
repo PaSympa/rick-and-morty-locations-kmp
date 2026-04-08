@@ -8,6 +8,7 @@ import fr.leandremru.rickandmortylocations.data.remote.api.LocationApi
 import fr.leandremru.rickandmortylocations.data.remote.createHttpClient
 import fr.leandremru.rickandmortylocations.data.repository.LocationRepositoryImpl
 import fr.leandremru.rickandmortylocations.domain.repository.LocationRepository
+import fr.leandremru.rickandmortylocations.presentation.navigation.Destination
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListViewModel
 import org.koin.core.module.Module
@@ -34,7 +35,9 @@ val repositoryModule: Module = module {
 /** Per-screen ViewModels. */
 val viewModelModule: Module = module {
     viewModel { LocationListViewModel(get()) }
-    viewModel { LocationDetailViewModel(repository = get(), audioManager = get()) }
+    viewModel { (navKey: Destination.LocationDetail) ->
+        LocationDetailViewModel(navKey = navKey, repository = get(), audioManager = get())
+    }
 }
 
 /** Aggregates every cross-platform Koin module so [initKoin] only has to call one function. */

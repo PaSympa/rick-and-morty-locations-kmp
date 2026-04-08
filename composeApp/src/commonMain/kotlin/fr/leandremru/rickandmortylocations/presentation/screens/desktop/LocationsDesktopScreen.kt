@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,20 +17,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailAction
+import fr.leandremru.rickandmortylocations.presentation.navigation.Destination
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 /**
  * Desktop master-detail composition root.
  *
- * Reuses the stateless mobile screens. Selection is local Compose state, not
- * navigation: clicking on the left pane updates `selectedLocationId` and the
- * right pane reacts by dispatching a fresh `Load` action to the same VM
- * instance — no recreation between selections.
+ * Reuses the stateless mobile screens. Selection is held as local Compose state,
+ * not navigation: clicking on the left pane updates `selectedLocationId` and the
+ * right pane resolves a fresh `LocationDetailViewModel` keyed by that id.
  */
 @Composable
 fun LocationsDesktopScreen() {
@@ -95,9 +94,10 @@ private fun DetailPane(
         return
     }
 
-    val viewModel = koinViewModel<LocationDetailViewModel>()
-    LaunchedEffect(selectedLocationId) {
-        viewModel.onAction(LocationDetailAction.Load(selectedLocationId))
+    val viewModel = koinViewModel<LocationDetailViewModel>(
+        key = "detail-$selectedLocationId",
+    ) {
+        parametersOf(Destination.LocationDetail(selectedLocationId))
     }
     val state by viewModel.state.collectAsState()
     LocationDetailScreen(
