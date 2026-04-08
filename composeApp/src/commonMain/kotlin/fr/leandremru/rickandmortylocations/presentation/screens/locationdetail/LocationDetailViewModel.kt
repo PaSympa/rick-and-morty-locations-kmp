@@ -28,7 +28,7 @@ class LocationDetailViewModel(
 
     fun onAction(action: LocationDetailAction) {
         when (action) {
-            is LocationDetailAction.Load -> load(action.id)
+            is LocationDetailAction.Load -> if (_state.value.requestedId != action.id) load(action.id)
             LocationDetailAction.Retry -> _state.value.requestedId?.let(::load)
         }
     }
