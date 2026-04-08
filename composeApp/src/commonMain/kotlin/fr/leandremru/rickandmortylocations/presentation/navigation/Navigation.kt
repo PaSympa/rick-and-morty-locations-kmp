@@ -5,14 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.savedstate.serialization.SavedStateConfiguration
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailAction
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
@@ -22,9 +22,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Type-safe navigation destinations for the mobile flow. */
@@ -60,20 +57,6 @@ sealed interface NavEvent {
 }
 
 /**
- * SavedState configuration that registers every [Destination] subtype against the
- * polymorphic [NavKey]. Required by the cross-platform `rememberNavBackStack` overload
- * to serialize/restore the back stack across configuration changes and process death.
- */
-private val NavBackStackConfiguration = SavedStateConfiguration {
-    serializersModule = SerializersModule {
-        polymorphic(NavKey::class) {
-            subclass(Destination.LocationList::class)
-            subclass(Destination.LocationDetail::class)
-        }
-    }
-}
-
-/**
  * Mobile navigation host — composition root for the Nav3 graph.
  *
  * Owns the back stack, collects [AppNavigator] events, and resolves each
@@ -82,10 +65,7 @@ private val NavBackStackConfiguration = SavedStateConfiguration {
  */
 @Composable
 fun AppNavHost() {
-    // rememberNavBackStack survives configuration changes (rotation, dark mode...)
-    // and process death — the user lands back on the same screen instead of being
-    // kicked to the list.
-    val backStack = rememberNavBackStack(NavBackStackConfiguration, Destination.LocationList)
+    val backStack = remember { mutableStateListOf<NavKey>(Destination.LocationList) }
 
     LaunchedEffect(Unit) {
         AppNavigator.events.collect { event ->
