@@ -1,16 +1,13 @@
 package fr.leandremru.rickandmortylocations
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import fr.leandremru.rickandmortylocations.presentation.navigation.AppNavHost
+import fr.leandremru.rickandmortylocations.presentation.theme.RnMTheme
 
-/**
- * Application root composable. Wraps the navigation host in the Material theme.
- * The dedicated brand theme will replace [MaterialTheme] in a later phase.
- */
+/** Application root composable. Wraps the navigation host in the brand theme. */
 @Composable
 fun App() {
-    MaterialTheme {
+    RnMTheme {
         AppNavHost()
     }
 }
