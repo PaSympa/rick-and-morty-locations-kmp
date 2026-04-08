@@ -6,14 +6,8 @@ import android.media.MediaPlayer
 /**
  * Android `actual` of [AudioManager], backed by [MediaPlayer].
  *
- * Resource lookup is done at runtime via `Resources.getIdentifier(...)` so the
- * build does not fail if the audio files are not yet present in `res/raw/`.
- * Missing files become silent no-ops.
- *
- * The constructor takes a [Context] because [MediaPlayer.create] needs one.
- * It is wired through the dedicated `Context.createAudioManager()` extension
- * function (see `ContextExtensions.android.kt`) so the Koin module reads as
- * a single, idiomatic line.
+ * Resources are looked up at runtime via `getIdentifier(...)` so a missing audio
+ * file becomes a silent no-op rather than a crash.
  */
 actual class AudioManager(private val context: Context) {
 

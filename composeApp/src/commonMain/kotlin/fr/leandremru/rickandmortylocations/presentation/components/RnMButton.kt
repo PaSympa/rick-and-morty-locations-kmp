@@ -9,14 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/**
- * Branded primary button for the Rick & Morty Locations app.
- *
- * Wraps Material 3 [Button] with the brand color scheme (portal green) and the
- * design-system typography. Every actionable button in the app should use this
- * composable rather than [Button] directly, so a brand-wide tweak only requires
- * editing one file.
- */
+/** Branded primary button — wraps Material 3 [Button] with the design-system colors and typography. */
 @Composable
 fun RnMButton(
     text: String,

@@ -12,12 +12,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel for the location detail screen.
+ * UDF ViewModel for the location detail screen.
  *
- * Same UDF loop as the list ViewModel. The audio cue (portal sound) is fired as a
- * deliberate side effect when [LocationDetailAction.Load] is dispatched: it ties
- * the cross-native [AudioManager] to a real, justifiable user interaction instead
- * of being a decorative bonus.
+ * The id is dispatched as an action ([LocationDetailAction.Load]) rather than
+ * passed via the constructor: this lets the same instance serve consecutive
+ * selections on Desktop master-detail without being recreated.
  */
 class LocationDetailViewModel(
     private val repository: LocationRepository,
@@ -35,7 +34,7 @@ class LocationDetailViewModel(
     }
 
     private fun load(id: Int) {
-        // Fire-and-forget audio cue: opening a location plays the portal sound.
+        // Cross-native side effect: opening a location plays the portal sound.
         audioManager.playPortalClick()
         _state.update {
             it.copy(phase = Phase.Loading, requestedId = id, location = null, errorMessage = null)

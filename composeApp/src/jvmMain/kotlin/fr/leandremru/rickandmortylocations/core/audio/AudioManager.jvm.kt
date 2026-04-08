@@ -6,12 +6,9 @@ import javax.sound.sampled.Clip
 /**
  * Desktop `actual` of [AudioManager] backed by `javax.sound.sampled.Clip`.
  *
- * Audio files are looked up on the JVM classpath at construction time. If a
- * file is missing or malformed, the corresponding clip stays `null` and the
- * matching `play*` method becomes a silent no-op.
- *
- * Note: `javax.sound.sampled` only supports WAV / AIFF / AU natively — MP3
- * files would need an extra SPI provider, which is why we use WAV.
+ * Only WAV is supported (native to `javax.sound.sampled`); a missing or
+ * malformed file leaves the corresponding clip `null` and turns the matching
+ * `play*` call into a no-op.
  */
 actual class AudioManager {
 

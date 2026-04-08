@@ -26,11 +26,6 @@ import fr.leandremru.rickandmortylocations.presentation.components.RnMLabeledRow
 /**
  * Stateless location detail screen.
  *
- * Pure UI: takes the immutable [state], an [onAction] dispatcher and an
- * optional back callback. Knows nothing about Koin or the ViewModel — the
- * composition root resolves the [LocationDetailViewModel] and dispatches
- * the `Load` action whenever the requested id changes.
- *
  * @param onNavigateBack `null` on Desktop (master-detail stays on a single screen).
  */
 @OptIn(ExperimentalMaterial3Api::class)

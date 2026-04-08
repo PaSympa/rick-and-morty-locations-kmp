@@ -3,11 +3,10 @@ package fr.leandremru.rickandmortylocations.presentation.screens.locationdetail
 import fr.leandremru.rickandmortylocations.domain.model.Location
 
 /**
- * UDF contract of the location detail screen.
+ * Immutable UI state of the location detail screen.
  *
- * The state stays stateless about which id was requested last (`requestedId`)
- * so the same ViewModel can be reused on Desktop, where the user keeps switching
- * locations from the list pane on a single screen instance.
+ * `requestedId` is tracked here (not in the constructor) so the same VM
+ * instance can serve consecutive selections on Desktop master-detail.
  */
 data class LocationDetailUiState(
     val phase: Phase = Phase.Loading,
@@ -19,9 +18,6 @@ data class LocationDetailUiState(
 }
 
 sealed interface LocationDetailAction {
-    /** Load the location with the given id, replacing whatever the screen was showing. */
     data class Load(val id: Int) : LocationDetailAction
-
-    /** Reload after a previous failure. Uses the last requested id. */
     data object Retry : LocationDetailAction
 }

@@ -8,11 +8,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 /**
- * Builds the application-wide [HttpClient] used by remote services.
+ * Builds the shared [HttpClient].
  *
- * The HTTP engine itself (Android / Java) is auto-discovered by Ktor from
- * the platform-specific dependencies declared in `composeApp/build.gradle.kts`,
- * so this factory stays in `commonMain` with no `expect` / `actual` indirection.
+ * Engine (Android / Java) is auto-discovered by Ktor from the platform
+ * dependencies, so this factory lives in `commonMain` with no expect/actual.
  */
 fun createHttpClient(): HttpClient = HttpClient {
     install(ContentNegotiation) {

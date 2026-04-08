@@ -14,17 +14,13 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-/** Ktor `HttpClient` and remote services consumed by the data layer. */
+/** Ktor `HttpClient` and remote services. */
 val remoteModule: Module = module {
     single { createHttpClient() }
     single { LocationApi(get()) }
 }
 
-/**
- * Room database, DAOs, and the [RoomDatabase.Builder] consumed here.
- * The builder itself comes from [platformModules] because each platform
- * builds it differently.
- */
+/** Room database + DAO. The builder itself is provided by [platformModules]. */
 val databaseModule: Module = module {
     single<LocationsDatabase> { getLocationsDatabase(get<RoomDatabase.Builder<LocationsDatabase>>()) }
     single<LocationDao> { get<LocationsDatabase>().locationDao() }
@@ -41,11 +37,7 @@ val viewModelModule: Module = module {
     viewModel { LocationDetailViewModel(repository = get(), audioManager = get()) }
 }
 
-/**
- * Aggregates every shared (cross-platform) Koin module so [initKoin] only has
- * to call `modules(platformModules() + sharedModules())`. Adding a new shared
- * module means appending one entry here, not editing the bootstrap.
- */
+/** Aggregates every cross-platform Koin module so [initKoin] only has to call one function. */
 fun sharedModules(): List<Module> = listOf(
     remoteModule,
     databaseModule,

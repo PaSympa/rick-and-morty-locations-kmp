@@ -20,15 +20,7 @@ import fr.leandremru.rickandmortylocations.domain.model.Location
 import fr.leandremru.rickandmortylocations.presentation.components.RnMErrorState
 import fr.leandremru.rickandmortylocations.presentation.components.RnMLocationCard
 
-/**
- * Stateless locations list screen.
- *
- * Pure UI: takes the immutable [state], an [onAction] dispatcher and a
- * navigation callback for selection. Knows nothing about Koin or the
- * ViewModel — the composition root (navigation host or Desktop screen)
- * is in charge of resolving the [LocationListViewModel] and feeding its
- * state into this composable.
- */
+/** Stateless locations list screen. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationListScreen(

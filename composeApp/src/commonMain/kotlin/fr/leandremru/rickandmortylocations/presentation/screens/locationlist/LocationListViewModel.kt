@@ -12,14 +12,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-/**
- * ViewModel for the locations list screen.
- *
- * Follows a UDF / MVI loop:
- *  1. State is exposed as an immutable [StateFlow].
- *  2. The screen reacts by dispatching a [LocationListAction] through [onAction].
- *  3. Effects (repository calls) run on [viewModelScope] and feed the state back via [update].
- */
+/** UDF ViewModel for the locations list screen. */
 class LocationListViewModel(
     private val repository: LocationRepository,
 ) : ViewModel() {
@@ -40,8 +33,8 @@ class LocationListViewModel(
 
     private fun loadLocations() {
         _state.update { it.copy(phase = Phase.Loading, errorMessage = null) }
-        // Repository exposes a Flow: the first emission comes from the Room cache (or
-        // from the network on a cold start), and any later upsert refreshes the UI.
+        // Repository exposes a Flow: the first emission is the Room cache (or
+        // a fresh fetch if empty), and any later upsert refreshes the UI.
         repository.getLocations()
             .onEach { locations ->
                 _state.update { it.copy(phase = Phase.Loaded, locations = locations) }

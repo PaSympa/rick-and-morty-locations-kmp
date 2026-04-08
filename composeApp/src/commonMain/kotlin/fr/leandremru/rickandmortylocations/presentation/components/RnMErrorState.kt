@@ -10,12 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/**
- * Reusable error state with a branded retry button — shared by every screen that loads data.
- *
- * Uses [RnMButton] for the retry action so the design system stays consistent
- * across screens (same color, same typography, same padding).
- */
+/** Reusable error state with a branded retry button. */
 @Composable
 fun RnMErrorState(
     message: String,

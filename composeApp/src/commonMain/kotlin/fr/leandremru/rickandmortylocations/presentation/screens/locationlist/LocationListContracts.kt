@@ -2,16 +2,7 @@ package fr.leandremru.rickandmortylocations.presentation.screens.locationlist
 
 import fr.leandremru.rickandmortylocations.domain.model.Location
 
-/**
- * UDF contract of the locations list screen.
- *
- * - [LocationListUiState] is the immutable state observed by the composable.
- * - [LocationListAction] enumerates every user-driven event the ViewModel can react to.
- *
- * Selection is intentionally NOT modeled as an action here: navigating to the detail
- * is a UI concern, handled by the screen via a callback to the NavHost. The ViewModel
- * stays focused on data loading.
- */
+/** Immutable UI state of the locations list screen. */
 data class LocationListUiState(
     val phase: Phase = Phase.Loading,
     val locations: List<Location> = emptyList(),
@@ -20,10 +11,14 @@ data class LocationListUiState(
     enum class Phase { Loading, Loaded, Error }
 }
 
+/**
+ * User-driven events handled by [LocationListViewModel].
+ *
+ * Selecting a location is intentionally NOT modeled here: it is a UI concern
+ * (navigation) handled by a screen-level callback so the same screen can be
+ * reused on Desktop master-detail without going through navigation.
+ */
 sealed interface LocationListAction {
-    /** Initial load triggered by the screen. */
     data object Load : LocationListAction
-
-    /** Reload after a previous failure. Same effect as [Load], but explicit for readability. */
     data object Retry : LocationListAction
 }

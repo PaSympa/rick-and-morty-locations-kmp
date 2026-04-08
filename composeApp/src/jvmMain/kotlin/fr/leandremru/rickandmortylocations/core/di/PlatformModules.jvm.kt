@@ -8,11 +8,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.io.File
 
-/**
- * Desktop implementation: persistent SQLite file in
- * `~/.rick-and-morty-locations/locations.db`. The directory is created on
- * first run if needed.
- */
+/** Persistent SQLite file in `~/.rick-and-morty-locations/locations.db`. */
 private val databaseBuilderModule: Module = module {
     single<RoomDatabase.Builder<LocationsDatabase>> {
         val dbDir = File(System.getProperty("user.home"), ".rick-and-morty-locations")
@@ -22,7 +18,7 @@ private val databaseBuilderModule: Module = module {
     }
 }
 
-/** Desktop `actual` of [AudioManager] backed by `javax.sound.sampled`. */
+/** [AudioManager] no-arg actual (javax.sound.sampled). */
 private val audioModule: Module = module {
     single { AudioManager() }
 }

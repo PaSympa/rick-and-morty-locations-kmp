@@ -26,16 +26,12 @@ import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.Loc
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Desktop master-detail layout — composition root for the Desktop flow.
+ * Desktop master-detail composition root.
  *
- * Reuses the stateless [LocationListScreen] and [LocationDetailScreen] composables
- * from the mobile flow. Selection is local Compose state instead of navigation:
- * clicking a location in the left pane updates `selectedLocationId`, which the
- * right pane reacts to by dispatching a fresh `Load` action to the detail VM.
- *
- * Like the mobile [fr.leandremru.rickandmortylocations.presentation.navigation.AppNavHost],
- * this is the only place on Desktop allowed to know about Koin — the actual
- * screens stay pure.
+ * Reuses the stateless mobile screens. Selection is local Compose state, not
+ * navigation: clicking on the left pane updates `selectedLocationId` and the
+ * right pane reacts by dispatching a fresh `Load` action to the same VM
+ * instance — no recreation between selections.
  */
 @Composable
 fun LocationsDesktopScreen() {
@@ -93,7 +89,6 @@ private fun DetailPane(
         state = state,
         onAction = viewModel::onAction,
         modifier = modifier,
-        // No back button on Desktop: master-detail stays on a single screen.
         onNavigateBack = null,
     )
 }

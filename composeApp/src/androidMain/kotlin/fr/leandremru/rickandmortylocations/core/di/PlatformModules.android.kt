@@ -9,7 +9,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-/** Android implementation: persistent SQLite file in the app's data directory. */
+/** Persistent SQLite file in the app's data directory. */
 private val databaseBuilderModule: Module = module {
     single<RoomDatabase.Builder<LocationsDatabase>> {
         val context = androidContext()
@@ -21,7 +21,7 @@ private val databaseBuilderModule: Module = module {
     }
 }
 
-/** Native [AudioManager] built from the application context via the dedicated extension. */
+/** [AudioManager] built from the application context via the dedicated extension. */
 private val audioModule: Module = module {
     single<AudioManager> { androidContext().createAudioManager() }
 }

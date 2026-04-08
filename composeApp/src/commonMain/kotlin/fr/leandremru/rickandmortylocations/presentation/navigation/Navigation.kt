@@ -24,52 +24,33 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * Type-safe navigation destinations for the mobile flow.
- *
- * Each destination is a [NavKey] consumed by Nav3's [NavDisplay]. The Desktop
- * layout intentionally does NOT use this graph: it shows list + detail on a
- * single screen via [fr.leandremru.rickandmortylocations.presentation.screens.desktop.LocationsDesktopScreen].
- */
+/** Type-safe navigation destinations for the mobile flow. */
 sealed interface Destination : NavKey {
-
-    /** Locations list — start destination on mobile. */
-    @Serializable
-    data object LocationList : Destination
-
-    /** Detail of a single location, identified by its [locationId]. */
-    @Serializable
-    data class LocationDetail(val locationId: Int) : Destination
+    @Serializable data object LocationList : Destination
+    @Serializable data class LocationDetail(val locationId: Int) : Destination
 }
 
 /**
  * Centralized navigator for the mobile flow.
  *
- * This `object` is the single source of truth for navigation requests across the
- * application. Any composable that needs to navigate calls [navigate] / [back]
- * instead of holding a reference to the back stack — keeping screens free of any
- * navigation plumbing and making the navigation surface auditable from one place.
- *
- * Events are emitted through a hot [SharedFlow] consumed by [AppNavHost], which is
- * the only collector and the only owner of the actual back stack state.
+ * Single source of truth for navigation requests: any composable calls
+ * [navigate] / [back] instead of holding a reference to the back stack.
+ * The only collector is [AppNavHost], which owns the back stack itself.
  */
 object AppNavigator {
 
     private val _events = MutableSharedFlow<NavEvent>(extraBufferCapacity = 8)
     val events: SharedFlow<NavEvent> = _events.asSharedFlow()
 
-    /** Push the given [destination] onto the back stack. */
     fun navigate(destination: Destination) {
         _events.tryEmit(NavEvent.GoTo(destination))
     }
 
-    /** Pop the current entry from the back stack. */
     fun back() {
         _events.tryEmit(NavEvent.Back)
     }
 }
 
-/** One-shot navigation events emitted by [AppNavigator] and consumed by [AppNavHost]. */
 sealed interface NavEvent {
     data class GoTo(val destination: Destination) : NavEvent
     data object Back : NavEvent
@@ -78,17 +59,14 @@ sealed interface NavEvent {
 /**
  * Mobile navigation host — composition root for the Nav3 graph.
  *
- * Owns the back stack, collects every navigation request emitted by [AppNavigator],
- * and resolves each entry's ViewModel via Koin through small private `*Entry`
- * composables. Screens themselves stay agnostic about Koin and navigation
- * plumbing: they only receive a `state` and an `onAction` callback.
+ * Owns the back stack, collects [AppNavigator] events, and resolves each
+ * entry's ViewModel via Koin in the small private `*Entry` composables —
+ * the screens themselves never import Koin.
  */
 @Composable
 fun AppNavHost() {
     val backStack = remember { mutableStateListOf<NavKey>(Destination.LocationList) }
 
-    // Single subscription to AppNavigator: every navigation request from the app
-    // funnels through this collector, which is the only place that mutates the back stack.
     LaunchedEffect(Unit) {
         AppNavigator.events.collect { event ->
             when (event) {
@@ -117,7 +95,6 @@ fun AppNavHost() {
     )
 }
 
-/** Composition root for the locations list entry: resolves the VM, observes state. */
 @Composable
 private fun LocationListEntry() {
     val viewModel = koinViewModel<LocationListViewModel>()
@@ -131,7 +108,6 @@ private fun LocationListEntry() {
     )
 }
 
-/** Composition root for the detail entry: resolves the VM, observes state, dispatches `Load`. */
 @Composable
 private fun LocationDetailEntry(locationId: Int) {
     val viewModel = koinViewModel<LocationDetailViewModel>()
