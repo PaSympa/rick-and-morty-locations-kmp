@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailScreen
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListScreen
 
 /**
@@ -45,7 +46,7 @@ fun AppNavHost() {
             NavEntry(key) {
                 when (key) {
                     is LocationListRoute -> LocationListScreen()
-                    is LocationDetailRoute -> Placeholder("LocationDetailScreen — id=${key.locationId}")
+                    is LocationDetailRoute -> LocationDetailScreen(locationId = key.locationId)
                     else -> Placeholder("Unknown route: $key")
                 }
             }

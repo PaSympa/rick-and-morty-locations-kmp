@@ -8,6 +8,8 @@ import fr.leandremru.rickandmortylocations.data.remote.api.LocationApi
 import fr.leandremru.rickandmortylocations.data.remote.createHttpClient
 import fr.leandremru.rickandmortylocations.data.repository.LocationRepositoryImpl
 import fr.leandremru.rickandmortylocations.domain.repository.LocationRepository
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailStore
+import fr.leandremru.rickandmortylocations.presentation.screens.locationdetail.LocationDetailViewModel
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListStore
 import fr.leandremru.rickandmortylocations.presentation.screens.locationlist.LocationListViewModel
 import org.koin.core.module.dsl.viewModel
@@ -36,6 +38,14 @@ val repositoryModule = module {
 
 /** Per-screen MVI stores and ViewModels. */
 val viewModelModule = module {
+    // Locations list
     factory { LocationListStore(get()) }
     viewModel { LocationListViewModel(get()) }
+
+    // Location detail (parameterized by locationId from the navigation route)
+    viewModel { (locationId: Int) ->
+        LocationDetailViewModel(
+            store = LocationDetailStore(locationId = locationId, repository = get()),
+        )
+    }
 }
