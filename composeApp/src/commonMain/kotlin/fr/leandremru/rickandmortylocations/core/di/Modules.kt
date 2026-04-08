@@ -23,7 +23,7 @@ val networkModule = module {
 
 /**
  * Room database, DAOs and the [RoomDatabase.Builder] consumed here.
- * The builder itself comes from [platformModule] because each platform
+ * The builder itself comes from [platformModules] because each platform
  * builds it differently.
  */
 val databaseModule = module {
