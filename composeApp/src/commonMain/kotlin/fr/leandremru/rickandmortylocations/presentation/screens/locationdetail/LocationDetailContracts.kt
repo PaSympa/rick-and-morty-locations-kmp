@@ -17,6 +17,8 @@ data class LocationDetailUiState(
     enum class Phase { Loading, Loaded, Error }
 }
 
+/** User-driven events handled by [LocationDetailViewModel]. */
 sealed interface LocationDetailAction {
+    /** User asked to retry after an error. */
     data object Retry : LocationDetailAction
 }

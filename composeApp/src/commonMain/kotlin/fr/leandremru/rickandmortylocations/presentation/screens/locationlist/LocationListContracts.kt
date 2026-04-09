@@ -25,6 +25,9 @@ data class LocationListUiState(
  * reused on Desktop master-detail without going through navigation.
  */
 sealed interface LocationListAction {
+    /** Initial load triggered by the screen entering composition. */
     data object Load : LocationListAction
+
+    /** User asked to retry after an error. */
     data object Retry : LocationListAction
 }

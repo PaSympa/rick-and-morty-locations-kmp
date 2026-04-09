@@ -15,9 +15,14 @@ import kotlinx.coroutines.launch
 /**
  * UDF ViewModel for the location detail screen.
  *
- * Receives the [Destination.LocationDetail] NavKey via Koin's `parametersOf`,
- * which is the canonical Nav3 pattern: the id is part of the back stack key,
- * survives configuration changes for free, and the load runs once in `init`.
+ * Reçoit la [Destination.LocationDetail] via `parametersOf` (Nav3) : l'id fait
+ * partie de la back stack, survit aux changements de config, et le `load()`
+ * d'`init` ne se rejoue pas. Déclenche aussi le son "portail" cross-native via
+ * [AudioManager] à chaque ouverture / retry.
+ *
+ * @property navKey       Clé de navigation portant l'id à charger.
+ * @property repository   Source de la location demandée.
+ * @property audioManager Effet sonore "portail" déclenché à l'ouverture.
  */
 class LocationDetailViewModel(
     private val navKey: Destination.LocationDetail,
@@ -26,12 +31,15 @@ class LocationDetailViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationDetailUiState())
+
+    /** État courant observé par l'écran. */
     val state: StateFlow<LocationDetailUiState> = _state.asStateFlow()
 
     init {
         load()
     }
 
+    /** Point d'entrée unique des intents UI. */
     fun onAction(action: LocationDetailAction) {
         when (action) {
             LocationDetailAction.Retry -> load()

@@ -12,18 +12,29 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-/** UDF ViewModel for the locations list screen. */
+/**
+ * UDF ViewModel for the locations list screen.
+ *
+ * Single source of truth for "what locations exist" — partagé entre l'écran
+ * mobile et la vue master-detail desktop. Déclenche le premier chargement au
+ * démarrage et reste abonné au cache Room exposé par [LocationRepository].
+ *
+ * @property repository Source des locations (gère cache + réseau).
+ */
 class LocationListViewModel(
     private val repository: LocationRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationListUiState())
+
+    /** État courant observé par l'écran. */
     val state: StateFlow<LocationListUiState> = _state.asStateFlow()
 
     init {
         onAction(LocationListAction.Load)
     }
 
+    /** Point d'entrée unique des intents UI. */
     fun onAction(action: LocationListAction) {
         when (action) {
             LocationListAction.Load,

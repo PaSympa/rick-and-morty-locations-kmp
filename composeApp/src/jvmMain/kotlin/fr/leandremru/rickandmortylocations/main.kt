@@ -7,6 +7,7 @@ import fr.leandremru.rickandmortylocations.core.di.initKoin
 import fr.leandremru.rickandmortylocations.presentation.screens.desktop.LocationsDesktopScreen
 import fr.leandremru.rickandmortylocations.presentation.theme.RnMTheme
 
+/** Point d'entrée Desktop : Koin + theme song, puis ouvre la fenêtre master-detail. */
 fun main() {
     val koin = initKoin().koin
     koin.get<AudioManager>().playThemeSong()

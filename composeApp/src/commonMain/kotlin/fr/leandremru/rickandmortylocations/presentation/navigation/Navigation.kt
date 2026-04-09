@@ -62,7 +62,14 @@ import org.koin.core.parameter.parametersOf
 
 /** Type-safe navigation destinations for the mobile flow. */
 sealed interface Destination : NavKey {
+    /** Root list screen. */
     @Serializable data object LocationList : Destination
+
+    /**
+     * Detail screen for a specific location.
+     *
+     * @property locationId Identifier of the location to display.
+     */
     @Serializable data class LocationDetail(val locationId: Int) : Destination
 }
 
@@ -76,19 +83,31 @@ sealed interface Destination : NavKey {
 object AppNavigator {
 
     private val _events = MutableSharedFlow<NavEvent>(extraBufferCapacity = 8)
+
+    /** Hot stream of navigation requests, collected once by [AppNavHost]. */
     val events: SharedFlow<NavEvent> = _events.asSharedFlow()
 
+    /** Push [destination] on top of the back stack. */
     fun navigate(destination: Destination) {
         _events.tryEmit(NavEvent.GoTo(destination))
     }
 
+    /** Pop the current entry from the back stack. */
     fun back() {
         _events.tryEmit(NavEvent.Back)
     }
 }
 
+/** A navigation request emitted by [AppNavigator] and consumed by [AppNavHost]. */
 sealed interface NavEvent {
+    /**
+     * Push a new destination on top of the back stack.
+     *
+     * @property destination Target destination to display.
+     */
     data class GoTo(val destination: Destination) : NavEvent
+
+    /** Pop the topmost entry from the back stack. */
     data object Back : NavEvent
 }
 
